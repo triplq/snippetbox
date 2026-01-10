@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -12,7 +14,17 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprint(w, "Welcome to snippetbox")
+	ts, err := template.ParseFiles("./ui/html/pages/home.html")
+	if err != nil {
+		log.Fatal(err)
+		http.Error(w, "Interanl Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := ts.Execute(w, nil); err != nil {
+		log.Fatal(err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
 func showSnippets(w http.ResponseWriter, r *http.Request) {
