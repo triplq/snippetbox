@@ -22,8 +22,8 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
 	mux.HandleFunc("/", handlers.Home(errLog))
-	mux.HandleFunc("/snippets/view", handlers.ShowSnippets)
-	mux.HandleFunc("/snippets/create", handlers.CreateSnippet)
+	mux.HandleFunc("/snippets/view", handlers.ShowSnippets(errLog))
+	mux.HandleFunc("/snippets/create", handlers.CreateSnippet(errLog))
 
 	srv := &http.Server{
 		Addr:     *address,
