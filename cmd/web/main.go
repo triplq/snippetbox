@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/triplq/snippetbox/internal/handlers"
 )
 
 func main() {
@@ -19,9 +21,9 @@ func main() {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	mux.HandleFunc("/", home)
-	mux.HandleFunc("/snippets/view", showSnippets)
-	mux.HandleFunc("/snippets/create", createSnippet)
+	mux.HandleFunc("/", handlers.Home(errLog))
+	mux.HandleFunc("/snippets/view", handlers.ShowSnippets)
+	mux.HandleFunc("/snippets/create", handlers.CreateSnippet)
 
 	srv := &http.Server{
 		Addr:     *address,
