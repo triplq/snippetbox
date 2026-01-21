@@ -2,14 +2,14 @@ package helpers
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"runtime/debug"
 )
 
-func ServerError(w http.ResponseWriter, err error, errLog *log.Logger) {
+func ServerError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s/n%s", err, debug.Stack())
-	errLog.Print(trace)
+	slog.Error("server error", "trace", trace)
 
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
