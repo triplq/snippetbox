@@ -3,14 +3,14 @@ package handlers
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/helpers"
 )
 
-func Home(errLog *log.Logger) http.HandlerFunc {
+func Home(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			helpers.NotFound(w)
@@ -25,17 +25,17 @@ func Home(errLog *log.Logger) http.HandlerFunc {
 
 		ts, err := template.ParseFiles(files...)
 		if err != nil {
-			helpers.ServerError(w, err, errLog)
+			helpers.ServerError(w, err)
 			return
 		}
 
 		if err := ts.ExecuteTemplate(w, "base", nil); err != nil {
-			helpers.ServerError(w, err, errLog)
+			helpers.ServerError(w, err)
 		}
 	}
 }
 
-func ShowSnippets(errLog *log.Logger) http.HandlerFunc {
+func ShowSnippets(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.URL.Query().Get("id"))
 		if err != nil || id < 1 {
@@ -47,7 +47,7 @@ func ShowSnippets(errLog *log.Logger) http.HandlerFunc {
 	}
 }
 
-func CreateSnippet(errLog *log.Logger) http.HandlerFunc {
+func CreateSnippet(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.Header().Set("Allow", http.MethodPost)

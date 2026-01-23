@@ -8,8 +8,10 @@ import (
 )
 
 func ServerError(w http.ResponseWriter, err error) {
-	trace := fmt.Sprintf("%s/n%s", err, debug.Stack())
+	trace := (debug.Stack())
 	slog.Error("server error", "trace", trace)
+
+	fmt.Printf("\n----DEbUG OUTPUT-----\n%s\n%s\n", err.Error(), trace)
 
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }

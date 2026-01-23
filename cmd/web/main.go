@@ -8,14 +8,9 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/models"
 )
-
-type application struct {
-	// errLog   *log.Logger
-	// infoLog  *log.Logger
-	snippets *models.SnippetModel
-}
 
 func main() {
 	address := flag.String("addr", ":4000", "Address to use")
@@ -25,9 +20,6 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	// infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	// errLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-
 	db, err := openDB(*dsn)
 	if err != nil {
 		slog.Error("critical error", "err", err)
@@ -35,16 +27,13 @@ func main() {
 	}
 	defer db.Close()
 
-	app := &application{
-		// errLog:   errLog,
-		// infoLog:  infoLog,
-		snippets: &models.SnippetModel{DB: db},
+	app := &application.Application{
+		Snippets: &models.SnippetModel{DB: db},
 	}
+
 	srv := &http.Server{
-		Addr: *address,
-		// ErrorLog: errLog,
-		// Handler:  routes(infoLog, errLog),
-		Handler: routes(),
+		Addr:    *address,
+		Handler: routes(app),
 	}
 
 	slog.Info("Listening on adress", "addr", *address)
