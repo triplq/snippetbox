@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/helpers"
+	"github.com/triplq/snippetbox/internal/models"
 )
 
 func Home(app *application.Application) http.HandlerFunc {
@@ -43,7 +45,18 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+		// fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+
+		snippet, err := app.Snippets.Get(id)
+		if err != nil {
+			if errors.Is(err, models.ErrNoRecord) {
+				helpers.NotFound(w)
+			} else {
+				helpers.ServerError(w, err)
+			}
+		}
+
+		fmt.Fprintf(w, "%+v", snippet)
 	}
 }
 
@@ -55,6 +68,15 @@ func CreateSnippet(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		fmt.Fprint(w, "Creating a snippet...")
+		title := "snail"
+		content := "snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
+		expires := 7
+
+		id, err := app.Snippets.Insert(title, content, expires)
+		if err != nil {
+			helpers.ServerError(w, err)
+		}
+
+		fmt.Fprint(w, "Creating a snippet...", id)
 	}
 }
