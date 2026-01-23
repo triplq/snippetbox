@@ -45,8 +45,6 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		// fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
-
 		snippet, err := app.Snippets.Get(id)
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
@@ -54,9 +52,23 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 			} else {
 				helpers.ServerError(w, err)
 			}
+			return
 		}
 
-		fmt.Fprintf(w, "%+v", snippet)
+		files := []string{
+			"./ui/html/base.html",
+			"./ui/html/partials/nav.html",
+			"./ui/html/pages/view.html",
+		}
+
+		ts, err := template.ParseFiles(files...)
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+		if err = ts.ExecuteTemplate(w, "base", snippet); err != nil {
+			helpers.ServerError(w, err)
+		}
 	}
 }
 
