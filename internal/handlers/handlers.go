@@ -61,12 +61,16 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 			"./ui/html/pages/view.html",
 		}
 
+		data := &templateData{
+			Snippet: snippet,
+		}
+
 		ts, err := template.ParseFiles(files...)
 		if err != nil {
 			helpers.ServerError(w, err)
 			return
 		}
-		if err = ts.ExecuteTemplate(w, "base", snippet); err != nil {
+		if err = ts.ExecuteTemplate(w, "base", data); err != nil {
 			helpers.ServerError(w, err)
 		}
 	}
