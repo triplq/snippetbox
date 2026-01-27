@@ -19,6 +19,12 @@ func Home(app *application.Application) http.HandlerFunc {
 			return
 		}
 
+		snippets, err := app.Snippets.Latest()
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+
 		files := []string{
 			"./ui/html/base.html",
 			"./ui/html/partials/nav.html",
@@ -31,7 +37,11 @@ func Home(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		if err := ts.ExecuteTemplate(w, "base", nil); err != nil {
+		data := &templateData{
+			Snippets: snippets,
+		}
+
+		if err := ts.ExecuteTemplate(w, "base", data); err != nil {
 			helpers.ServerError(w, err)
 		}
 	}
