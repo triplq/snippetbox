@@ -25,9 +25,10 @@ func Home(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		err = app.Render(w, http.StatusOK, "home.html", &templates.TemplateData{
-			Snippets: snippets,
-		})
+		data := templates.NewTemplateData(r)
+		data.Snippets = snippets
+
+		err = app.Render(w, http.StatusOK, "home.html", data)
 		if err != nil {
 			helpers.ServerError(w, err)
 			return
@@ -53,9 +54,14 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		err = app.Render(w, http.StatusOK, "view.html", &templates.TemplateData{
-			Snippet: snippet,
-		})
+		data := templates.NewTemplateData(r)
+		data.Snippet = snippet
+
+		err = app.Render(w, http.StatusOK, "view.html", data)
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
 	}
 }
 
