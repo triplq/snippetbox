@@ -3,13 +3,13 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/helpers"
 	"github.com/triplq/snippetbox/internal/models"
+	"github.com/triplq/snippetbox/internal/templates"
 )
 
 func Home(app *application.Application) http.HandlerFunc {
@@ -25,24 +25,12 @@ func Home(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		files := []string{
-			"./ui/html/base.html",
-			"./ui/html/partials/nav.html",
-			"./ui/html/pages/home.html",
-		}
-
-		ts, err := template.ParseFiles(files...)
+		err = app.Render(w, http.StatusOK, "home.html", &templates.TemplateData{
+			Snippets: snippets,
+		})
 		if err != nil {
 			helpers.ServerError(w, err)
 			return
-		}
-
-		data := &templateData{
-			Snippets: snippets,
-		}
-
-		if err := ts.ExecuteTemplate(w, "base", data); err != nil {
-			helpers.ServerError(w, err)
 		}
 	}
 }
@@ -65,24 +53,9 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		files := []string{
-			"./ui/html/base.html",
-			"./ui/html/partials/nav.html",
-			"./ui/html/pages/view.html",
-		}
-
-		data := &templateData{
+		err = app.Render(w, http.StatusOK, "view.html", &templates.TemplateData{
 			Snippet: snippet,
-		}
-
-		ts, err := template.ParseFiles(files...)
-		if err != nil {
-			helpers.ServerError(w, err)
-			return
-		}
-		if err = ts.ExecuteTemplate(w, "base", data); err != nil {
-			helpers.ServerError(w, err)
-		}
+		})
 	}
 }
 

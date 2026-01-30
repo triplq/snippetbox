@@ -10,6 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/models"
+	"github.com/triplq/snippetbox/internal/templates"
 )
 
 func main() {
@@ -27,8 +28,15 @@ func main() {
 	}
 	defer db.Close()
 
+	templateCache, err := templates.NewTemplateCache()
+	if err != nil {
+		slog.Error("critical error", "err", err)
+		os.Exit(1)
+	}
+
 	app := &application.Application{
-		Snippets: &models.SnippetModel{DB: db},
+		Snippets:      &models.SnippetModel{DB: db},
+		TemplateCache: templateCache,
 	}
 
 	srv := &http.Server{
