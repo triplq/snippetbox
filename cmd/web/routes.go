@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 
+	"github.com/justinas/alice"
+
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/handlers"
 	"github.com/triplq/snippetbox/internal/middleware"
@@ -18,5 +20,7 @@ func routes(app *application.Application) http.Handler {
 	mux.HandleFunc("/snippets/view", handlers.ShowSnippets(app))
 	mux.HandleFunc("/snippets/create", handlers.CreateSnippet(app))
 
-	return middleware.SlogRequest(middleware.SecureHeaders(mux))
+	chain := alice.New(middleware.PanicRecover, middleware.SlogRequest, middleware.SecureHeaders)
+
+	return chain.Then(mux)
 }

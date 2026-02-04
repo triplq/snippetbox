@@ -1,8 +1,11 @@
 package middleware
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
+
+	"github.com/triplq/snippetbox/internal/helpers"
 )
 
 func SecureHeaders(next http.Handler) http.Handler {
@@ -24,6 +27,19 @@ func SlogRequest(next http.Handler) http.Handler {
 			"proto", r.Proto,
 			"method", r.Method,
 			"uri", r.URL.RequestURI())
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func PanicRecover(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				w.Header().Set("Connection", "close")
+				helpers.ServerError(w, fmt.Errorf("%s", err))
+			}
+		}()
 
 		next.ServeHTTP(w, r)
 	})
