@@ -18,5 +18,5 @@ func routes(app *application.Application) http.Handler {
 	mux.HandleFunc("/snippets/view", handlers.ShowSnippets(app))
 	mux.HandleFunc("/snippets/create", handlers.CreateSnippet(app))
 
-	return middleware.SecureHeaders(mux)
+	return middleware.SlogRequest(middleware.SecureHeaders(mux))
 }
