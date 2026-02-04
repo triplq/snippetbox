@@ -5,9 +5,10 @@ import (
 
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/handlers"
+	"github.com/triplq/snippetbox/internal/middleware"
 )
 
-func routes(app *application.Application) *http.ServeMux {
+func routes(app *application.Application) http.Handler {
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
@@ -17,5 +18,5 @@ func routes(app *application.Application) *http.ServeMux {
 	mux.HandleFunc("/snippets/view", handlers.ShowSnippets(app))
 	mux.HandleFunc("/snippets/create", handlers.CreateSnippet(app))
 
-	return mux
+	return middleware.SecureHeaders(mux)
 }
