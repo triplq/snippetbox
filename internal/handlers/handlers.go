@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/helpers"
@@ -84,11 +86,33 @@ func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 			return
 		}
 
+		errors := make(map[string]string)
+
 		title := r.PostForm.Get("title")
 		content := r.PostForm.Get("content")
 		expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 		if err != nil {
 			helpers.ClientError(w, http.StatusBadRequest)
+			return
+		}
+
+		if strings.TrimSpace(title) == "" {
+			errors["title"] = "This field can not be empty"
+		} else if utf8.RuneCountInString(title) > 100 {
+			errors["title"] = "This filed can not be large then 100"
+		}
+
+		if utf8.RuneCountInString(content) > 100 {
+			errors["content"] = "This filed can not be large then 100"
+
+		}
+
+		if expires != 1 && expires != 7 && expires != 365 {
+			errors["expires"] = "This field must equals 1, 7, 365"
+		}
+
+		if len(errors) > 0 {
+			fmt.Fprint(w, errors)
 			return
 		}
 
