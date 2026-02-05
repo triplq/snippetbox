@@ -1,0 +1,23 @@
+{{define "title"}}Create a New snippet{{end}}
+
+{{define "main"}}
+<form action = "/snippets/create" method="POST">
+    <div>
+        <label>Title:</label>
+        <input type = "text" name = "title" required>
+    </div>
+    <div>
+        <label>Content:</label>
+        <textarea name = "content" required></textarea>
+    </div>
+    <div>
+        <label>Expires:</label>
+        <input type = "radio" name = "expires" value = "365" checked> One Year
+        <input type = "radio" name = "expires" value = "7"> One Week
+        <input type = "radio" name = "expires" value = "1"> One Day
+    </div>
+    <div>
+        <input type = "submit" value = "Publish Snippiet">
+    </div>
+</form>
+{{end}}

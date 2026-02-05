@@ -38,7 +38,7 @@ func Home(app *application.Application) http.HandlerFunc {
 
 func ShowSnippets(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.Atoi(r.URL.Query().Get("id"))
+		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil || id < 1 {
 			helpers.NotFound(w)
 			return
@@ -67,21 +67,37 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 
 func CreateSnippet(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			w.Header().Set("Allow", http.MethodPost)
-			helpers.ClientError(w, http.StatusMethodNotAllowed)
+		data := templates.NewTemplateData(r)
+		err := app.Render(w, http.StatusOK, "create.html", data)
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+	}
+}
+
+func PostCreateSnippet(app *application.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			helpers.ClientError(w, http.StatusBadRequest)
 			return
 		}
 
-		title := "snail"
-		content := "snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
-		expires := 7
+		title := r.PostForm.Get("title")
+		content := r.PostForm.Get("content")
+		expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+		if err != nil {
+			helpers.ClientError(w, http.StatusBadRequest)
+			return
+		}
 
 		id, err := app.Snippets.Insert(title, content, expires)
 		if err != nil {
 			helpers.ServerError(w, err)
+			return
 		}
 
-		fmt.Fprint(w, "Creating a snippet...", id)
+		http.Redirect(w, r, fmt.Sprintf("/snippets/view/%d", id), http.StatusSeeOther)
 	}
 }
