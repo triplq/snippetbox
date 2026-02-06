@@ -14,6 +14,13 @@ import (
 	"github.com/triplq/snippetbox/internal/templates"
 )
 
+type SnippetForm struct {
+	title   string
+	content string
+	expires int
+	errors  map[string]string
+}
+
 func Home(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -86,37 +93,42 @@ func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		errors := make(map[string]string)
+		templateForm := new(SnippetForm)
 
-		title := r.PostForm.Get("title")
-		content := r.PostForm.Get("content")
-		expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+		templateForm.title = r.PostForm.Get("title")
+		templateForm.content = r.PostForm.Get("content")
+		templateForm.expires, err = strconv.Atoi(r.PostForm.Get("expires"))
 		if err != nil {
 			helpers.ClientError(w, http.StatusBadRequest)
 			return
 		}
 
-		if strings.TrimSpace(title) == "" {
-			errors["title"] = "This field can not be empty"
-		} else if utf8.RuneCountInString(title) > 100 {
-			errors["title"] = "This filed can not be large then 100"
+		if strings.TrimSpace(templateForm.title) == "" {
+			templateForm.errors["title"] = "This field can not be empty"
+		} else if utf8.RuneCountInString(templateForm.title) > 100 {
+			templateForm.errors["title"] = "This filed can not be large then 100"
 		}
 
-		if utf8.RuneCountInString(content) > 100 {
-			errors["content"] = "This filed can not be large then 100"
+		if utf8.RuneCountInString(templateForm.content) > 100 {
+			templateForm.errors["content"] = "This filed can not be large then 100"
 
 		}
 
-		if expires != 1 && expires != 7 && expires != 365 {
-			errors["expires"] = "This field must equals 1, 7, 365"
+		if templateForm.expires != 1 && templateForm.expires != 7 && templateForm.expires != 365 {
+			templateForm.errors["expires"] = "This field must equals 1, 7, 365"
 		}
 
-		if len(errors) > 0 {
-			fmt.Fprint(w, errors)
+		if len(templateForm.errors) > 0 {
+			data := templates.NewTemplateData(r)
+			data.Form = templateForm
+			err := app.Render(w, http.StatusUnprocessableEntity, "create.html", data)
+			if err != nil {
+				helpers.ServerError(w, err)
+			}
 			return
 		}
 
-		id, err := app.Snippets.Insert(title, content, expires)
+		id, err := app.Snippets.Insert(templateForm.title, templateForm.content, templateForm.expires)
 		if err != nil {
 			helpers.ServerError(w, err)
 			return
