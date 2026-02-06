@@ -15,10 +15,10 @@ import (
 )
 
 type SnippetForm struct {
-	title   string
-	content string
-	expires int
-	errors  map[string]string
+	Title   string
+	Content string
+	Expires int
+	Errors  map[string]string
 }
 
 func Home(app *application.Application) http.HandlerFunc {
@@ -77,6 +77,9 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 func CreateSnippet(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := templates.NewTemplateData(r)
+		data.Form = SnippetForm{
+			Expires: 365,
+		}
 		err := app.Render(w, http.StatusOK, "create.html", data)
 		if err != nil {
 			helpers.ServerError(w, err)
@@ -93,32 +96,36 @@ func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		templateForm := new(SnippetForm)
-
-		templateForm.title = r.PostForm.Get("title")
-		templateForm.content = r.PostForm.Get("content")
-		templateForm.expires, err = strconv.Atoi(r.PostForm.Get("expires"))
+		exp, err := strconv.Atoi(r.PostForm.Get("expires"))
 		if err != nil {
 			helpers.ClientError(w, http.StatusBadRequest)
 			return
 		}
 
-		if strings.TrimSpace(templateForm.title) == "" {
-			templateForm.errors["title"] = "This field can not be empty"
-		} else if utf8.RuneCountInString(templateForm.title) > 100 {
-			templateForm.errors["title"] = "This filed can not be large then 100"
+		templateForm := SnippetForm{
+			Title:   r.PostForm.Get("title"),
+			Content: r.PostForm.Get("content"),
+			Expires: exp,
+			Errors:  make(map[string]string),
 		}
 
-		if utf8.RuneCountInString(templateForm.content) > 100 {
-			templateForm.errors["content"] = "This filed can not be large then 100"
-
+		if strings.TrimSpace(templateForm.Title) == "" {
+			templateForm.Errors["title"] = "This field can not be empty"
+		} else if utf8.RuneCountInString(templateForm.Title) > 100 {
+			templateForm.Errors["title"] = "This filed can not be large then 100"
 		}
 
-		if templateForm.expires != 1 && templateForm.expires != 7 && templateForm.expires != 365 {
-			templateForm.errors["expires"] = "This field must equals 1, 7, 365"
+		if strings.TrimSpace(templateForm.Content) == "" {
+			templateForm.Errors["content"] = "This field can not be empty"
+		} else if utf8.RuneCountInString(templateForm.Content) > 100 {
+			templateForm.Errors["content"] = "This filed can not be large then 100"
 		}
 
-		if len(templateForm.errors) > 0 {
+		if templateForm.Expires != 1 && templateForm.Expires != 7 && templateForm.Expires != 365 {
+			templateForm.Errors["expires"] = "This field must equals 1, 7, 365"
+		}
+
+		if len(templateForm.Errors) > 0 {
 			data := templates.NewTemplateData(r)
 			data.Form = templateForm
 			err := app.Render(w, http.StatusUnprocessableEntity, "create.html", data)
@@ -128,7 +135,7 @@ func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		id, err := app.Snippets.Insert(templateForm.title, templateForm.content, templateForm.expires)
+		id, err := app.Snippets.Insert(templateForm.Title, templateForm.Content, templateForm.Expires)
 		if err != nil {
 			helpers.ServerError(w, err)
 			return
