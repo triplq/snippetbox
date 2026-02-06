@@ -89,13 +89,13 @@ func CreateSnippet(app *application.Application) http.HandlerFunc {
 
 func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
+		var templateForm SnippetForm
+
+		err := app.DecodePostForm(r, &templateForm)
 		if err != nil {
 			helpers.ClientError(w, http.StatusBadRequest)
 			return
 		}
-
-		var templateForm SnippetForm
 
 		err = app.FormDecoder.Decode(&templateForm, r.PostForm)
 		if err != nil {

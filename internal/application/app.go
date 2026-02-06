@@ -1,6 +1,7 @@
 package application
 
 import (
+	"errors"
 	"html/template"
 	"net/http"
 
@@ -20,5 +21,24 @@ func (app *Application) Render(w http.ResponseWriter, status int, page string, d
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (app *Application) DecodePostForm(r *http.Request, dst any) error {
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+
+	err = app.FormDecoder.Decode(dst, r.PostForm)
+	if err != nil {
+		var invalidDecoder *form.InvalidDecoderError
+		if errors.As(err, &invalidDecoder) {
+			panic(err)
+		}
+
+		return err
+	}
+
 	return nil
 }
