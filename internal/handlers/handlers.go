@@ -5,20 +5,19 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/helpers"
 	"github.com/triplq/snippetbox/internal/models"
 	"github.com/triplq/snippetbox/internal/templates"
+	"github.com/triplq/snippetbox/internal/validator"
 )
 
 type SnippetForm struct {
-	Title   string
-	Content string
-	Expires int
-	Errors  map[string]string
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
 }
 
 func Home(app *application.Application) http.HandlerFunc {
@@ -96,36 +95,21 @@ func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		exp, err := strconv.Atoi(r.PostForm.Get("expires"))
+		var templateForm SnippetForm
+
+		err = app.FormDecoder.Decode(&templateForm, r.PostForm)
 		if err != nil {
 			helpers.ClientError(w, http.StatusBadRequest)
 			return
 		}
 
-		templateForm := SnippetForm{
-			Title:   r.PostForm.Get("title"),
-			Content: r.PostForm.Get("content"),
-			Expires: exp,
-			Errors:  make(map[string]string),
-		}
+		templateForm.CheckError(validator.NotBlank(templateForm.Title), "title", "Field can not be empty")
+		templateForm.CheckError(validator.MaxChars(templateForm.Title, 100), "title", "Field can not be large then 100")
+		templateForm.CheckError(validator.NotBlank(templateForm.Content), "content", "Field can not be empty")
+		templateForm.CheckError(validator.MaxChars(templateForm.Content, 100), "title", "Field can not be large then 100")
+		templateForm.CheckError(validator.PermittedInt(templateForm.Expires, 1, 7, 365), "expires", "This field must be 1, 7 or 365")
 
-		if strings.TrimSpace(templateForm.Title) == "" {
-			templateForm.Errors["title"] = "This field can not be empty"
-		} else if utf8.RuneCountInString(templateForm.Title) > 100 {
-			templateForm.Errors["title"] = "This filed can not be large then 100"
-		}
-
-		if strings.TrimSpace(templateForm.Content) == "" {
-			templateForm.Errors["content"] = "This field can not be empty"
-		} else if utf8.RuneCountInString(templateForm.Content) > 100 {
-			templateForm.Errors["content"] = "This filed can not be large then 100"
-		}
-
-		if templateForm.Expires != 1 && templateForm.Expires != 7 && templateForm.Expires != 365 {
-			templateForm.Errors["expires"] = "This field must equals 1, 7, 365"
-		}
-
-		if len(templateForm.Errors) > 0 {
+		if !templateForm.Valid() {
 			data := templates.NewTemplateData(r)
 			data.Form = templateForm
 			err := app.Render(w, http.StatusUnprocessableEntity, "create.html", data)

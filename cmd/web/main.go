@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-playground/form/v4"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/models"
@@ -34,9 +35,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	formDecoder := form.NewDecoder()
+
 	app := &application.Application{
 		Snippets:      &models.SnippetModel{DB: db},
 		TemplateCache: templateCache,
+		FormDecoder:   formDecoder,
 	}
 
 	srv := &http.Server{
