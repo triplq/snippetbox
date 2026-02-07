@@ -5,15 +5,17 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	"github.com/triplq/snippetbox/internal/models"
 	"github.com/triplq/snippetbox/internal/templates"
 )
 
 type Application struct {
-	Snippets      *models.SnippetModel
-	TemplateCache map[string]*template.Template
-	FormDecoder   *form.Decoder
+	Snippets       *models.SnippetModel
+	TemplateCache  map[string]*template.Template
+	FormDecoder    *form.Decoder
+	SessionManager *scs.SessionManager
 }
 
 func (app *Application) Render(w http.ResponseWriter, status int, page string, data *templates.TemplateData) error {
