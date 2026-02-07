@@ -13,17 +13,23 @@ import (
 func routes(app *application.Application) http.Handler {
 	mux := http.NewServeMux()
 
+	staticChain := alice.New(
+		middleware.PanicRecover,
+		middleware.SecureHeaders)
+
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
+	mux.Handle("GET /static/", staticChain.Then(http.StripPrefix("/static", fileServer)))
 
-	dynamic := alice.New(app.SessionManager.LoadAndSave)
+	dynamicChain := alice.New(
+		middleware.PanicRecover,
+		middleware.SecureHeaders,
+		middleware.SlogRequest,
+		app.SessionManager.LoadAndSave)
 
-	mux.Handle("GET /", dynamic.ThenFunc(handlers.Home(app)))
-	mux.Handle("GET /snippets/view/{id}", dynamic.ThenFunc(handlers.ShowSnippets(app)))
-	mux.Handle("GET /snippets/create", dynamic.ThenFunc(handlers.CreateSnippet(app)))
-	mux.Handle("POST /snippets/create", dynamic.ThenFunc(handlers.PostCreateSnippet(app)))
+	mux.Handle("GET /", dynamicChain.ThenFunc(handlers.Home(app)))
+	mux.Handle("GET /snippets/view/{id}", dynamicChain.ThenFunc(handlers.ShowSnippets(app)))
+	mux.Handle("GET /snippets/create", dynamicChain.ThenFunc(handlers.CreateSnippet(app)))
+	mux.Handle("POST /snippets/create", dynamicChain.ThenFunc(handlers.PostCreateSnippet(app)))
 
-	chain := alice.New(middleware.PanicRecover, middleware.SlogRequest, middleware.SecureHeaders)
-
-	return chain.Then(mux)
+	return mux
 }
