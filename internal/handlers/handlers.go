@@ -62,8 +62,11 @@ func ShowSnippets(app *application.Application) http.HandlerFunc {
 			return
 		}
 
+		flash := app.SessionManager.PopString(r.Context(), "flash")
+
 		data := templates.NewTemplateData(r)
 		data.Snippet = snippet
+		data.Flash = flash
 
 		err = app.Render(w, http.StatusOK, "view.html", data)
 		if err != nil {
@@ -124,6 +127,8 @@ func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 			helpers.ServerError(w, err)
 			return
 		}
+
+		app.SessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
 
 		http.Redirect(w, r, fmt.Sprintf("/snippets/view/%d", id), http.StatusSeeOther)
 	}
