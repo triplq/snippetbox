@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"log/slog"
@@ -38,6 +39,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
+
 	formDecoder := form.NewDecoder()
 
 	sessionManager := scs.New()
@@ -53,8 +58,9 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:    *address,
-		Handler: routes(app),
+		Addr:      *address,
+		Handler:   routes(app),
+		TLSConfig: tlsConfig,
 	}
 
 	slog.Info("Listening on adress", "addr", *address)
