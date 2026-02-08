@@ -58,9 +58,12 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:      *address,
-		Handler:   routes(app),
-		TLSConfig: tlsConfig,
+		Addr:         *address,
+		Handler:      routes(app),
+		TLSConfig:    tlsConfig,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	slog.Info("Listening on adress", "addr", *address)
