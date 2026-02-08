@@ -43,6 +43,7 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = mysqlstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
 
 	app := &application.Application{
 		Snippets:       &models.SnippetModel{DB: db},
@@ -57,7 +58,7 @@ func main() {
 	}
 
 	slog.Info("Listening on adress", "addr", *address)
-	if err := srv.ListenAndServe(); err != nil {
+	if err := srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem"); err != nil {
 		slog.Error("critical error", "err", err)
 		os.Exit(1)
 	}
