@@ -52,6 +52,7 @@ func main() {
 
 	app := &application.Application{
 		Snippets:       &models.SnippetModel{DB: db},
+		Users:          &models.UserModel{DB: db},
 		TemplateCache:  templateCache,
 		FormDecoder:    formDecoder,
 		SessionManager: sessionManager,

@@ -136,30 +136,30 @@ func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 
 func LogIn(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		fmt.Fprintln(w, "ITS FINE LOGIN")
 	}
 }
 
 func LogInPost(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		fmt.Fprintln(w, "ITS FINE LOGINPOST")
 	}
 }
 
 func SignUp(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		fmt.Fprintln(w, "ITS FINE SIGNUP")
 	}
 }
 
 func SignUpPost(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		fmt.Fprintln(w, "ITS FINE SIGNUPPOST")
 	}
 }
 
-func LogOut(app *application.Application) http.HandlerFunc {
+func LogOutPost(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		fmt.Fprintln(w, "ITS FINE LOGOUT")
 	}
 }

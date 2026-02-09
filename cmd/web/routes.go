@@ -34,7 +34,7 @@ func routes(app *application.Application) http.Handler {
 	mux.Handle("POST /user/login", dynamicChain.ThenFunc(handlers.LogInPost(app)))
 	mux.Handle("GET /user/signup", dynamicChain.ThenFunc(handlers.SignUp(app)))
 	mux.Handle("POST /user/signup", dynamicChain.ThenFunc(handlers.SignUp(app)))
-	mux.Handle("POST /user/logout", dynamicChain.ThenFunc(handlers.LogOut(app)))
+	mux.Handle("POST /user/logout", dynamicChain.ThenFunc(handlers.LogOutPost(app)))
 
 	return mux
 }
