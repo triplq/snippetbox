@@ -1,11 +1,15 @@
 {{define "nav"}}
 <nav>
-    <a href="/">Home</a>
-    <a href="/snippets/create">New snippet</a>
-    <a href="/snippets/signup">SignUp</a>
-    <a href="/snippets/login">LogIn</a>
-    <form action="/snippets/logout">
-        <button>LogOut</button>
-    </form> 
+    <div>
+        <a href="/">Home</a>
+        <a href="/snippets/create">New snippet</a>
+    </div>
+    <div>
+        <a href="/user/signup">SignUp</a>
+        <a href="/user/login">LogIn</a>
+        <form action="/user/logout" method="POST">
+            <button>LogOut</button>
+        </form> 
+    </div>
 </nav>
 {{end}}
