@@ -20,6 +20,13 @@ type SnippetForm struct {
 	validator.Validator `form:"-"`
 }
 
+type UserSignUpForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func Home(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -90,39 +97,33 @@ func CreateSnippet(app *application.Application) http.HandlerFunc {
 	}
 }
 
-func PostCreateSnippet(app *application.Application) http.HandlerFunc {
+func CreateSnippetPost(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var templateForm SnippetForm
+		var Form SnippetForm
 
-		err := app.DecodePostForm(r, &templateForm)
+		err := app.DecodePostForm(r, &Form)
 		if err != nil {
 			helpers.ClientError(w, http.StatusBadRequest)
 			return
 		}
 
-		err = app.FormDecoder.Decode(&templateForm, r.PostForm)
-		if err != nil {
-			helpers.ClientError(w, http.StatusBadRequest)
-			return
-		}
+		Form.CheckError(validator.NotBlank(Form.Title), "title", "Field can not be empty")
+		Form.CheckError(validator.MaxChars(Form.Title, 100), "title", "Field can not be large then 100")
+		Form.CheckError(validator.NotBlank(Form.Content), "content", "Field can not be empty")
+		Form.CheckError(validator.MaxChars(Form.Content, 100), "title", "Field can not be large then 100")
+		Form.CheckError(validator.PermittedInt(Form.Expires, 1, 7, 365), "expires", "This field must be 1, 7 or 365")
 
-		templateForm.CheckError(validator.NotBlank(templateForm.Title), "title", "Field can not be empty")
-		templateForm.CheckError(validator.MaxChars(templateForm.Title, 100), "title", "Field can not be large then 100")
-		templateForm.CheckError(validator.NotBlank(templateForm.Content), "content", "Field can not be empty")
-		templateForm.CheckError(validator.MaxChars(templateForm.Content, 100), "title", "Field can not be large then 100")
-		templateForm.CheckError(validator.PermittedInt(templateForm.Expires, 1, 7, 365), "expires", "This field must be 1, 7 or 365")
-
-		if !templateForm.Valid() {
+		if !Form.Valid() {
 			data := templates.NewTemplateData(r)
-			data.Form = templateForm
+			data.Form = Form
 			err := app.Render(w, http.StatusUnprocessableEntity, "create.html", data)
 			if err != nil {
-				helpers.ServerError(w, err)
+				helpers.ClientError(w, http.StatusBadRequest)
 			}
 			return
 		}
 
-		id, err := app.Snippets.Insert(templateForm.Title, templateForm.Content, templateForm.Expires)
+		id, err := app.Snippets.Insert(Form.Title, Form.Content, Form.Expires)
 		if err != nil {
 			helpers.ServerError(w, err)
 			return
@@ -131,6 +132,58 @@ func PostCreateSnippet(app *application.Application) http.HandlerFunc {
 		app.SessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
 
 		http.Redirect(w, r, fmt.Sprintf("/snippets/view/%d", id), http.StatusSeeOther)
+	}
+}
+
+func SignUp(app *application.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data := templates.NewTemplateData(r)
+		data.Form = new(UserSignUpForm)
+		err := app.Render(w, http.StatusOK, "signup.html", data)
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+	}
+}
+
+func SignUpPost(app *application.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var Form UserSignUpForm
+
+		err := app.DecodePostForm(r, &Form)
+		if err != nil {
+			helpers.ClientError(w, http.StatusBadRequest)
+			return
+		}
+
+		Form.CheckError(validator.NotBlank(Form.Name), "name", "Field can not be empty")
+		Form.CheckError(validator.MaxChars(Form.Name, 100), "name", "Field can not be lagre then 100")
+		Form.CheckError(validator.NotBlank(Form.Email), "email", "Field can not be empty")
+		Form.CheckError(validator.Matches(Form.Email, validator.EmailRX), "email", "Field must be a email")
+		Form.CheckError(validator.NotBlank(Form.Password), "password", "Field can not be empty")
+		Form.CheckError(validator.MinChars(Form.Password, 8), "password", "Field can not be shorter then 8")
+
+		if !Form.Valid() {
+			data := templates.NewTemplateData(r)
+			data.Form = Form
+			err := app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
+			if err != nil {
+				helpers.ClientError(w, http.StatusBadRequest)
+			}
+			return
+		}
+
+		fmt.Fprint(w, "User is created!")
+		// err = app.Users.Insert(Form.Name, Form.Email, Form.Password)
+		// if err != nil {
+		// 	helpers.ServerError(w, err)
+		// 	return
+		// }
+
+		// app.SessionManager.Put(r.Context(), "flash", "User successfully signup")
+
+		// http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
 
@@ -143,18 +196,6 @@ func LogIn(app *application.Application) http.HandlerFunc {
 func LogInPost(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "ITS FINE LOGINPOST")
-	}
-}
-
-func SignUp(app *application.Application) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "ITS FINE SIGNUP")
-	}
-}
-
-func SignUpPost(app *application.Application) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "ITS FINE SIGNUPPOST")
 	}
 }
 

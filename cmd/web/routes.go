@@ -29,11 +29,11 @@ func routes(app *application.Application) http.Handler {
 	mux.Handle("GET /", dynamicChain.ThenFunc(handlers.Home(app)))
 	mux.Handle("GET /snippets/view/{id}", dynamicChain.ThenFunc(handlers.ShowSnippets(app)))
 	mux.Handle("GET /snippets/create", dynamicChain.ThenFunc(handlers.CreateSnippet(app)))
-	mux.Handle("POST /snippets/create", dynamicChain.ThenFunc(handlers.PostCreateSnippet(app)))
+	mux.Handle("POST /snippets/create", dynamicChain.ThenFunc(handlers.CreateSnippetPost(app)))
 	mux.Handle("GET /user/login", dynamicChain.ThenFunc(handlers.LogIn(app)))
 	mux.Handle("POST /user/login", dynamicChain.ThenFunc(handlers.LogInPost(app)))
 	mux.Handle("GET /user/signup", dynamicChain.ThenFunc(handlers.SignUp(app)))
-	mux.Handle("POST /user/signup", dynamicChain.ThenFunc(handlers.SignUp(app)))
+	mux.Handle("POST /user/signup", dynamicChain.ThenFunc(handlers.SignUpPost(app)))
 	mux.Handle("POST /user/logout", dynamicChain.ThenFunc(handlers.LogOutPost(app)))
 
 	return mux
