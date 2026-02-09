@@ -174,16 +174,25 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		fmt.Fprint(w, "User is created!")
-		// err = app.Users.Insert(Form.Name, Form.Email, Form.Password)
-		// if err != nil {
-		// 	helpers.ServerError(w, err)
-		// 	return
-		// }
+		err = app.Users.Insert(Form.Name, Form.Email, Form.Password)
+		if err != nil {
+			if errors.Is(err, models.ErrDuplicateEmail) {
+				Form.AddError("email", "This email is already used")
+				data := templates.NewTemplateData(r)
+				data.Form = Form
+				err := app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
+				if err != nil {
+					helpers.ClientError(w, http.StatusBadRequest)
+				}
+				return
+			}
+			helpers.ServerError(w, err)
+			return
+		}
 
-		// app.SessionManager.Put(r.Context(), "flash", "User successfully signup")
+		app.SessionManager.Put(r.Context(), "flash", "User successfully signup")
 
-		// http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 	}
 }
 
