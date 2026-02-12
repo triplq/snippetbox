@@ -216,7 +216,54 @@ func LogIn(app *application.Application) http.HandlerFunc {
 
 func LogInPost(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "ITS FINE LOGINPOST")
+		var Form UserLoginForm
+
+		err := app.DecodePostForm(r, &Form)
+		if err != nil {
+			helpers.ClientError(w, http.StatusBadRequest)
+			return
+		}
+
+		Form.CheckError(validator.NotBlank(Form.Email), "email", "Field can not be empty")
+		Form.CheckError(validator.Matches(Form.Email, validator.EmailRX), "email", "Field must be a email")
+		Form.CheckError(validator.NotBlank(Form.Password), "password", "Field can not be empty")
+		Form.CheckError(validator.MinChars(Form.Password, 8), "password", "Field can not be shorter then 8")
+
+		if !Form.Valid() {
+			data := templates.NewTemplateData(r)
+			data.Form = Form
+			err = app.Render(w, http.StatusUnprocessableEntity, "login.html", data)
+			if err != nil {
+				helpers.ClientError(w, http.StatusBadRequest)
+			}
+			return
+		}
+
+		id, err := app.Users.Authenticate(Form.Email, Form.Password)
+		if err != nil {
+			if errors.Is(err, models.ErrInvalidCredentials) {
+				Form.AddNonFieldErrors("Email or password is incorrect")
+				data := templates.NewTemplateData(r)
+				data.Form = Form
+				err = app.Render(w, http.StatusUnprocessableEntity, "login.html", data)
+				if err != nil {
+					helpers.ClientError(w, http.StatusBadRequest)
+				}
+				return
+			} else {
+				helpers.ServerError(w, err)
+			}
+			return
+		}
+
+		err = app.SessionManager.RenewToken(r.Context())
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+
+		app.SessionManager.Put(r.Context(), "authenticatedUserID", id)
+		http.Redirect(w, r, "/snippets/create", http.StatusSeeOther)
 	}
 }
 
