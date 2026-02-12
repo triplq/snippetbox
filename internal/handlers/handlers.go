@@ -27,6 +27,12 @@ type UserSignUpForm struct {
 	validator.Validator `form:"-"`
 }
 
+type UserLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func Home(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
@@ -198,7 +204,13 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 
 func LogIn(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "ITS FINE LOGIN")
+		data := templates.NewTemplateData(r)
+		data.Form = new(UserLoginForm)
+		err := app.Render(w, http.StatusOK, "login.html", data)
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
 	}
 }
 
