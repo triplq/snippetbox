@@ -3,7 +3,7 @@
 {{define "main"}}
 <form action="/user/login" method="POST" novalidate>
     {{range .Form.NonFieldErrors}}
-        <label class="error">{{.}}</label>
+        <div class="error">{{.}}</div>
     {{end}}
     <div>
         <label>Email:</label>

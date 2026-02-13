@@ -27,7 +27,7 @@ func routes(app *application.Application) http.Handler {
 		app.SessionManager.LoadAndSave)
 
 	mux.Handle("GET /", dynamicChain.ThenFunc(handlers.Home(app)))
-	mux.Handle("GET /snippets/view/{id}", dynamicChain.ThenFunc(handlers.ShowSnippets(app)))
+	mux.Handle("GET /snippets/view/{id}", dynamicChain.ThenFunc(handlers.ShowSnippet(app)))
 	mux.Handle("GET /snippets/create", dynamicChain.ThenFunc(handlers.CreateSnippet(app)))
 	mux.Handle("POST /snippets/create", dynamicChain.ThenFunc(handlers.CreateSnippetPost(app)))
 	mux.Handle("GET /user/login", dynamicChain.ThenFunc(handlers.LogIn(app)))

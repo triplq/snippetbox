@@ -46,8 +46,11 @@ func Home(app *application.Application) http.HandlerFunc {
 			return
 		}
 
+		flash := app.SessionManager.PopString(r.Context(), "flash")
+
 		data := templates.NewTemplateData(r)
 		data.Snippets = snippets
+		data.Flash = flash
 
 		err = app.Render(w, http.StatusOK, "home.html", data)
 		if err != nil {
@@ -57,7 +60,7 @@ func Home(app *application.Application) http.HandlerFunc {
 	}
 }
 
-func ShowSnippets(app *application.Application) http.HandlerFunc {
+func ShowSnippet(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))
 		if err != nil || id < 1 {
@@ -269,6 +272,15 @@ func LogInPost(app *application.Application) http.HandlerFunc {
 
 func LogOutPost(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "ITS FINE LOGOUT")
+		err := app.SessionManager.RenewToken(r.Context())
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+
+		app.SessionManager.Remove(r.Context(), "authenticatedUserID")
+		app.SessionManager.Put(r.Context(), "flash", "You are successfully logged out")
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
