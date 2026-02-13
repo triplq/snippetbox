@@ -5,42 +5,64 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/helpers"
 )
 
-func SecureHeaders(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com")
-		w.Header().Set("Referrer-Policy", "origin-when-cross-origin")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("X-Frame-Options", "deny")
-		w.Header().Set("X-XSS-Protection", "0")
+func SecureHeaders(app *application.Application) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com")
+			w.Header().Set("Referrer-Policy", "origin-when-cross-origin")
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			w.Header().Set("X-Frame-Options", "deny")
+			w.Header().Set("X-XSS-Protection", "0")
 
-		next.ServeHTTP(w, r)
-	})
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
-func SlogRequest(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("received request",
-			"ip", r.RemoteAddr,
-			"proto", r.Proto,
-			"method", r.Method,
-			"uri", r.URL.RequestURI())
+func SlogRequest(app *application.Application) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			slog.Info("received request",
+				"ip", r.RemoteAddr,
+				"proto", r.Proto,
+				"method", r.Method,
+				"uri", r.URL.RequestURI())
 
-		next.ServeHTTP(w, r)
-	})
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
-func PanicRecover(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := recover(); err != nil {
-				w.Header().Set("Connection", "close")
-				helpers.ServerError(w, fmt.Errorf("%s", err))
+func PanicRecover(app *application.Application) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				if err := recover(); err != nil {
+					w.Header().Set("Connection", "close")
+					helpers.ServerError(w, fmt.Errorf("%s", err))
+				}
+			}()
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func AuthIsRequired(app *application.Application) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !app.IsAuthenticated(r) {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				return
 			}
-		}()
 
-		next.ServeHTTP(w, r)
-	})
+			w.Header().Set("Cache-Control", "no-store")
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }
