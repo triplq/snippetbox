@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/triplq/snippetbox/internal/models"
+	"github.com/triplq/snippetbox/internal/types"
 )
 
 func humanDate(t time.Time) string {
@@ -18,16 +19,19 @@ var functions = template.FuncMap{
 }
 
 type TemplateData struct {
-	CurrentYear int
-	Snippet     *models.Snippet
-	Snippets    []*models.Snippet
-	Form        any
-	Flash       string
+	CurrentYear     int
+	Snippet         *models.Snippet
+	Snippets        []*models.Snippet
+	Form            any
+	Flash           string
+	IsAuthenticated bool
 }
 
-func NewTemplateData(r *http.Request) *TemplateData {
+func NewTemplateData(app_type types.AppInterface, r *http.Request) *TemplateData {
 	return &TemplateData{
-		CurrentYear: time.Now().Year(),
+		CurrentYear:     time.Now().Year(),
+		IsAuthenticated: app_type.IsAuthenticated(r),
+		Flash:           app_type.GetFlash(r),
 	}
 }
 
@@ -43,7 +47,6 @@ func NewTemplateCache() (map[string]*template.Template, error) {
 		name := filepath.Base(page)
 
 		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.html")
-		// ts, err := template.ParseFiles("./ui/html/base.html")
 		if err != nil {
 			return nil, err
 		}

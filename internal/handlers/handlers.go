@@ -46,11 +46,8 @@ func Home(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		flash := app.SessionManager.PopString(r.Context(), "flash")
-
-		data := templates.NewTemplateData(r)
+		data := templates.NewTemplateData(app, r)
 		data.Snippets = snippets
-		data.Flash = flash
 
 		err = app.Render(w, http.StatusOK, "home.html", data)
 		if err != nil {
@@ -78,11 +75,8 @@ func ShowSnippet(app *application.Application) http.HandlerFunc {
 			return
 		}
 
-		flash := app.SessionManager.PopString(r.Context(), "flash")
-
-		data := templates.NewTemplateData(r)
+		data := templates.NewTemplateData(app, r)
 		data.Snippet = snippet
-		data.Flash = flash
 
 		err = app.Render(w, http.StatusOK, "view.html", data)
 		if err != nil {
@@ -94,7 +88,7 @@ func ShowSnippet(app *application.Application) http.HandlerFunc {
 
 func CreateSnippet(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := templates.NewTemplateData(r)
+		data := templates.NewTemplateData(app, r)
 		data.Form = SnippetForm{
 			Expires: 365,
 		}
@@ -123,7 +117,7 @@ func CreateSnippetPost(app *application.Application) http.HandlerFunc {
 		Form.CheckError(validator.PermittedInt(Form.Expires, 1, 7, 365), "expires", "This field must be 1, 7 or 365")
 
 		if !Form.Valid() {
-			data := templates.NewTemplateData(r)
+			data := templates.NewTemplateData(app, r)
 			data.Form = Form
 			err := app.Render(w, http.StatusUnprocessableEntity, "create.html", data)
 			if err != nil {
@@ -146,7 +140,7 @@ func CreateSnippetPost(app *application.Application) http.HandlerFunc {
 
 func SignUp(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := templates.NewTemplateData(r)
+		data := templates.NewTemplateData(app, r)
 		data.Form = new(UserSignUpForm)
 		err := app.Render(w, http.StatusOK, "signup.html", data)
 		if err != nil {
@@ -174,7 +168,7 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 		Form.CheckError(validator.MinChars(Form.Password, 8), "password", "Field can not be shorter then 8")
 
 		if !Form.Valid() {
-			data := templates.NewTemplateData(r)
+			data := templates.NewTemplateData(app, r)
 			data.Form = Form
 			err := app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
 			if err != nil {
@@ -187,7 +181,7 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, models.ErrDuplicateEmail) {
 				Form.AddError("email", "This email is already used")
-				data := templates.NewTemplateData(r)
+				data := templates.NewTemplateData(app, r)
 				data.Form = Form
 				err := app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
 				if err != nil {
@@ -207,7 +201,7 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 
 func LogIn(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := templates.NewTemplateData(r)
+		data := templates.NewTemplateData(app, r)
 		data.Form = new(UserLoginForm)
 		err := app.Render(w, http.StatusOK, "login.html", data)
 		if err != nil {
@@ -233,7 +227,7 @@ func LogInPost(app *application.Application) http.HandlerFunc {
 		Form.CheckError(validator.MinChars(Form.Password, 8), "password", "Field can not be shorter then 8")
 
 		if !Form.Valid() {
-			data := templates.NewTemplateData(r)
+			data := templates.NewTemplateData(app, r)
 			data.Form = Form
 			err = app.Render(w, http.StatusUnprocessableEntity, "login.html", data)
 			if err != nil {
@@ -246,7 +240,7 @@ func LogInPost(app *application.Application) http.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, models.ErrInvalidCredentials) {
 				Form.AddNonFieldErrors("Email or password is incorrect")
-				data := templates.NewTemplateData(r)
+				data := templates.NewTemplateData(app, r)
 				data.Form = Form
 				err = app.Render(w, http.StatusUnprocessableEntity, "login.html", data)
 				if err != nil {
