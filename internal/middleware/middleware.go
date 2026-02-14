@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/justinas/nosurf"
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/helpers"
 )
@@ -64,5 +65,18 @@ func AuthIsRequired(app *application.Application) func(http.Handler) http.Handle
 
 			next.ServeHTTP(w, r)
 		})
+	}
+}
+
+func NoSurf(app *application.Application) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		csrfHandler := nosurf.New(next)
+		csrfHandler.SetBaseCookie(http.Cookie{
+			HttpOnly: true,
+			Path:     "/",
+			Secure:   true,
+		})
+
+		return csrfHandler
 	}
 }

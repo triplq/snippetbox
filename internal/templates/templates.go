@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/justinas/nosurf"
 	"github.com/triplq/snippetbox/internal/models"
 	"github.com/triplq/snippetbox/internal/types"
 )
@@ -25,6 +26,7 @@ type TemplateData struct {
 	Form            any
 	Flash           string
 	IsAuthenticated bool
+	CSRFToken       string
 }
 
 func NewTemplateData(app_type types.AppInterface, r *http.Request) *TemplateData {
@@ -32,6 +34,7 @@ func NewTemplateData(app_type types.AppInterface, r *http.Request) *TemplateData
 		CurrentYear:     time.Now().Year(),
 		IsAuthenticated: app_type.IsAuthenticated(r),
 		Flash:           app_type.GetFlash(r),
+		CSRFToken:       nosurf.Token(r),
 	}
 }
 
