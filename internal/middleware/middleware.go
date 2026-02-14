@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"github.com/justinas/nosurf"
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/helpers"
+	"github.com/triplq/snippetbox/internal/types"
 )
 
 func SecureHeaders(app *application.Application) func(http.Handler) http.Handler {
@@ -78,5 +80,30 @@ func NoSurf(app *application.Application) func(http.Handler) http.Handler {
 		})
 
 		return csrfHandler
+	}
+}
+
+func Authenticate(app *application.Application) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			id := app.SessionManager.GetInt(r.Context(), "authenticatedUserID")
+			if id == 0 {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			exists, err := app.Users.Exists(id)
+			if err != nil {
+				helpers.ServerError(w, err)
+				return
+			}
+
+			if exists {
+				ctx := context.WithValue(r.Context(), types.IsAuthenticatedContextKey, true)
+				r = r.WithContext(ctx)
+			}
+
+			next.ServeHTTP(w, r)
+		})
 	}
 }

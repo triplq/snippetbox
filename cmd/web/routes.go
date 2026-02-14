@@ -25,7 +25,8 @@ func routes(app *application.Application) http.Handler {
 		middleware.SecureHeaders(app),
 		middleware.SlogRequest(app),
 		app.SessionManager.LoadAndSave,
-		middleware.NoSurf(app))
+		middleware.NoSurf(app),
+		middleware.Authenticate(app))
 
 	mux.Handle("GET /", dynamicChain.ThenFunc(handlers.Home(app)))
 	mux.Handle("GET /snippets/view/{id}", dynamicChain.ThenFunc(handlers.ShowSnippet(app)))

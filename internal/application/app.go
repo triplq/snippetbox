@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/form/v4"
 	"github.com/triplq/snippetbox/internal/models"
 	"github.com/triplq/snippetbox/internal/templates"
+	"github.com/triplq/snippetbox/internal/types"
 )
 
 type Application struct {
@@ -47,7 +48,11 @@ func (app *Application) DecodePostForm(r *http.Request, dst any) error {
 }
 
 func (app *Application) IsAuthenticated(r *http.Request) bool {
-	return app.SessionManager.Exists(r.Context(), "authenticatedUserID")
+	isAuthenticated, ok := r.Context().Value(types.IsAuthenticatedContextKey).(bool)
+	if !ok {
+		return false
+	}
+	return isAuthenticated
 }
 
 func (app *Application) GetFlash(r *http.Request) string {
