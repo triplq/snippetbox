@@ -8,6 +8,7 @@ import (
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/handlers"
 	"github.com/triplq/snippetbox/internal/middleware"
+	"github.com/triplq/snippetbox/ui"
 )
 
 func routes(app *application.Application) http.Handler {
@@ -17,8 +18,8 @@ func routes(app *application.Application) http.Handler {
 		middleware.PanicRecover(app),
 		middleware.SecureHeaders(app))
 
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	mux.Handle("GET /static/", staticChain.Then(http.StripPrefix("/static", fileServer)))
+	fileServer := http.FileServer(http.FS(ui.Files))
+	mux.Handle("GET /static/", staticChain.Then(fileServer))
 
 	dynamicChain := alice.New(
 		middleware.PanicRecover(app),
