@@ -14,6 +14,8 @@ import (
 func Routes(app *application.Application) http.Handler {
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("GET /ping", handlers.Ping)
+
 	staticChain := alice.New(
 		middleware.PanicRecover(app),
 		middleware.SecureHeaders(app))
