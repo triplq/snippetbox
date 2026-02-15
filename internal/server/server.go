@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ import (
 	"github.com/triplq/snippetbox/ui"
 )
 
-func routes(app *application.Application) http.Handler {
+func Routes(app *application.Application) http.Handler {
 	mux := http.NewServeMux()
 
 	staticChain := alice.New(

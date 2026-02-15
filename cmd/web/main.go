@@ -15,6 +15,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/triplq/snippetbox/internal/application"
 	"github.com/triplq/snippetbox/internal/models"
+	"github.com/triplq/snippetbox/internal/server"
 	"github.com/triplq/snippetbox/internal/templates"
 )
 
@@ -60,7 +61,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:         *address,
-		Handler:      routes(app),
+		Handler:      server.Routes(app),
 		TLSConfig:    tlsConfig,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,

@@ -33,7 +33,7 @@ type UserLoginForm struct {
 	validator.Validator `form:"-"`
 }
 
-func ping(w http.ResponseWriter, r *http.Request) {
+func Ping(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
 
