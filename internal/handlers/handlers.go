@@ -114,7 +114,7 @@ func CreateSnippetPost(app *application.Application) http.HandlerFunc {
 		Form.CheckError(validator.MaxChars(Form.Title, 100), "title", "Field can not be large then 100")
 		Form.CheckError(validator.NotBlank(Form.Content), "content", "Field can not be empty")
 		Form.CheckError(validator.MaxChars(Form.Content, 100), "title", "Field can not be large then 100")
-		Form.CheckError(validator.PermittedInt(Form.Expires, 1, 7, 365), "expires", "This field must be 1, 7 or 365")
+		Form.CheckError(validator.PermittedValue(Form.Expires, 1, 7, 365), "expires", "This field must be 1, 7 or 365")
 
 		if !Form.Valid() {
 			data := templates.NewTemplateData(app, r)
