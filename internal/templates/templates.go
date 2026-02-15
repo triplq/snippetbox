@@ -2,6 +2,7 @@ package templates
 
 import (
 	"html/template"
+	"io/fs"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/justinas/nosurf"
 	"github.com/triplq/snippetbox/internal/models"
 	"github.com/triplq/snippetbox/internal/types"
+	"github.com/triplq/snippetbox/ui"
 )
 
 func humanDate(t time.Time) string {
@@ -41,7 +43,7 @@ func NewTemplateData(app_type types.AppInterface, r *http.Request) *TemplateData
 func NewTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
-	pages, err := filepath.Glob("./ui/html/pages/*.html")
+	pages, err := fs.Glob(ui.Files, "html/pages/*.html")
 	if err != nil {
 		return nil, err
 	}
@@ -49,17 +51,13 @@ func NewTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
-		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.html")
-		if err != nil {
-			return nil, err
+		patterns := []string{
+			"html/base.html",
+			"html/partials/nav.html",
+			page,
 		}
 
-		ts, err = ts.ParseGlob("./ui/html/partials/*.html")
-		if err != nil {
-			return nil, err
-		}
-
-		ts, err = ts.ParseFiles(page)
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
