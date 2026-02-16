@@ -117,7 +117,7 @@ func CreateSnippetPost(app *application.Application) http.HandlerFunc {
 		Form.CheckError(validator.NotBlank(Form.Title), "title", "Field can not be empty")
 		Form.CheckError(validator.MaxChars(Form.Title, 100), "title", "Field can not be large then 100")
 		Form.CheckError(validator.NotBlank(Form.Content), "content", "Field can not be empty")
-		Form.CheckError(validator.MaxChars(Form.Content, 100), "title", "Field can not be large then 100")
+		Form.CheckError(validator.MaxChars(Form.Content, 100), "content", "Field can not be large then 100")
 		Form.CheckError(validator.PermittedValue(Form.Expires, 1, 7, 365), "expires", "This field must be 1, 7 or 365")
 
 		if !Form.Valid() {
@@ -160,7 +160,7 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 
 		err := app.DecodePostForm(r, &Form)
 		if err != nil {
-			helpers.ClientError(w, http.StatusBadRequest)
+			helpers.ServerError(w, err)
 			return
 		}
 
@@ -174,10 +174,7 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 		if !Form.Valid() {
 			data := templates.NewTemplateData(app, r)
 			data.Form = Form
-			err := app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
-			if err != nil {
-				helpers.ClientError(w, http.StatusBadRequest)
-			}
+			app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
 			return
 		}
 
@@ -187,10 +184,7 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 				Form.AddError("email", "This email is already used")
 				data := templates.NewTemplateData(app, r)
 				data.Form = Form
-				err := app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
-				if err != nil {
-					helpers.ClientError(w, http.StatusBadRequest)
-				}
+				app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
 				return
 			}
 			helpers.ServerError(w, err)
@@ -221,7 +215,7 @@ func LogInPost(app *application.Application) http.HandlerFunc {
 
 		err := app.DecodePostForm(r, &Form)
 		if err != nil {
-			helpers.ClientError(w, http.StatusBadRequest)
+			helpers.ServerError(w, err)
 			return
 		}
 
@@ -234,9 +228,6 @@ func LogInPost(app *application.Application) http.HandlerFunc {
 			data := templates.NewTemplateData(app, r)
 			data.Form = Form
 			err = app.Render(w, http.StatusUnprocessableEntity, "login.html", data)
-			if err != nil {
-				helpers.ClientError(w, http.StatusBadRequest)
-			}
 			return
 		}
 
@@ -246,10 +237,7 @@ func LogInPost(app *application.Application) http.HandlerFunc {
 				Form.AddNonFieldErrors("Email or password is incorrect")
 				data := templates.NewTemplateData(app, r)
 				data.Form = Form
-				err = app.Render(w, http.StatusUnprocessableEntity, "login.html", data)
-				if err != nil {
-					helpers.ClientError(w, http.StatusBadRequest)
-				}
+				app.Render(w, http.StatusUnprocessableEntity, "login.html", data)
 				return
 			} else {
 				helpers.ServerError(w, err)
