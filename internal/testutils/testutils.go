@@ -57,7 +57,7 @@ func NewTestServer(t *testing.T, h http.Handler) *TestServer {
 }
 
 func (ts *TestServer) Get(t *testing.T, urlPath string) (int, http.Header, string) {
-	rs, err := ts.Client().Get(ts.URL + "/ping")
+	rs, err := ts.Client().Get(ts.URL + urlPath)
 	if err != nil {
 		t.Fatal(err)
 	}
