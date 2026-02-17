@@ -7,7 +7,12 @@ import (
 )
 
 func NewTestDB(t *testing.T) *sql.DB {
-	db, err := sql.Open("mysql", "test_web:pass@/snippetbox?parseTime=true&multiStatements=true")
+	db, err := sql.Open("mysql", "test_web:pass@/snippetbox_test?parseTime=true&multiStatements=true")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db.Ping()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,7 +28,7 @@ func NewTestDB(t *testing.T) *sql.DB {
 	}
 
 	t.Cleanup(func() {
-		script, err := os.ReadFile("./testdata/teadown.sql")
+		script, err := os.ReadFile("./testdata/teardown.sql")
 		if err != nil {
 			t.Fatal(err)
 		}
