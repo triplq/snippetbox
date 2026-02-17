@@ -32,6 +32,7 @@ func Routes(app *application.Application) http.Handler {
 		middleware.Authenticate(app))
 
 	mux.Handle("GET /", dynamicChain.ThenFunc(handlers.Home(app)))
+	mux.Handle("GET /about", dynamicChain.ThenFunc(handlers.About(app)))
 	mux.Handle("GET /snippets/view/{id}", dynamicChain.ThenFunc(handlers.ShowSnippet(app)))
 	mux.Handle("GET /user/login", dynamicChain.ThenFunc(handlers.LogIn(app)))
 	mux.Handle("POST /user/login", dynamicChain.ThenFunc(handlers.LogInPost(app)))

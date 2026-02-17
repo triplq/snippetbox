@@ -46,7 +46,7 @@ func Home(app *application.Application) http.HandlerFunc {
 
 		snippets, err := app.Snippets.Latest()
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 
@@ -55,8 +55,19 @@ func Home(app *application.Application) http.HandlerFunc {
 
 		err = app.Render(w, http.StatusOK, "home.html", data)
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
+		}
+	}
+}
+
+func About(app *application.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data := templates.NewTemplateData(app, r)
+
+		err := app.Render(w, http.StatusOK, "about.html", data)
+		if err != nil {
+			helpers.ServerError(w, err, app)
 		}
 	}
 }
@@ -74,7 +85,7 @@ func ShowSnippet(app *application.Application) http.HandlerFunc {
 			if errors.Is(err, models.ErrNoRecord) {
 				helpers.NotFound(w)
 			} else {
-				helpers.ServerError(w, err)
+				helpers.ServerError(w, err, app)
 			}
 			return
 		}
@@ -84,7 +95,7 @@ func ShowSnippet(app *application.Application) http.HandlerFunc {
 
 		err = app.Render(w, http.StatusOK, "view.html", data)
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 	}
@@ -98,7 +109,7 @@ func CreateSnippet(app *application.Application) http.HandlerFunc {
 		}
 		err := app.Render(w, http.StatusOK, "create.html", data)
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 	}
@@ -132,7 +143,7 @@ func CreateSnippetPost(app *application.Application) http.HandlerFunc {
 
 		id, err := app.Snippets.Insert(Form.Title, Form.Content, Form.Expires)
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 
@@ -148,7 +159,7 @@ func SignUp(app *application.Application) http.HandlerFunc {
 		data.Form = new(UserSignUpForm)
 		err := app.Render(w, http.StatusOK, "signup.html", data)
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 	}
@@ -160,7 +171,7 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 
 		err := app.DecodePostForm(r, &Form)
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 
@@ -187,7 +198,7 @@ func SignUpPost(app *application.Application) http.HandlerFunc {
 				app.Render(w, http.StatusUnprocessableEntity, "signup.html", data)
 				return
 			}
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 
@@ -203,7 +214,7 @@ func LogIn(app *application.Application) http.HandlerFunc {
 		data.Form = new(UserLoginForm)
 		err := app.Render(w, http.StatusOK, "login.html", data)
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 	}
@@ -215,7 +226,7 @@ func LogInPost(app *application.Application) http.HandlerFunc {
 
 		err := app.DecodePostForm(r, &Form)
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 
@@ -240,14 +251,14 @@ func LogInPost(app *application.Application) http.HandlerFunc {
 				app.Render(w, http.StatusUnprocessableEntity, "login.html", data)
 				return
 			} else {
-				helpers.ServerError(w, err)
+				helpers.ServerError(w, err, app)
 			}
 			return
 		}
 
 		err = app.SessionManager.RenewToken(r.Context())
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 
@@ -260,7 +271,7 @@ func LogOutPost(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := app.SessionManager.RenewToken(r.Context())
 		if err != nil {
-			helpers.ServerError(w, err)
+			helpers.ServerError(w, err, app)
 			return
 		}
 

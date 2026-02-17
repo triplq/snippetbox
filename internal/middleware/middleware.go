@@ -46,7 +46,7 @@ func PanicRecover(app *application.Application) func(http.Handler) http.Handler 
 			defer func() {
 				if err := recover(); err != nil {
 					w.Header().Set("Connection", "close")
-					helpers.ServerError(w, fmt.Errorf("%s", err))
+					helpers.ServerError(w, fmt.Errorf("%s", err), app)
 				}
 			}()
 
@@ -94,7 +94,7 @@ func Authenticate(app *application.Application) func(http.Handler) http.Handler 
 
 			exists, err := app.Users.Exists(id)
 			if err != nil {
-				helpers.ServerError(w, err)
+				helpers.ServerError(w, err, app)
 				return
 			}
 

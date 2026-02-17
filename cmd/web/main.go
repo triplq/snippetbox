@@ -22,6 +22,7 @@ import (
 func main() {
 	address := flag.String("addr", ":4000", "Address to use")
 	dsn := flag.String("dsn", "web_app:@tcp(127.0.0.1:3306)/snippetbox?parseTime=true", "MySQL connection string")
+	debug := flag.Bool("debug", false, "Turn on a debug_mode")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -57,6 +58,7 @@ func main() {
 		TemplateCache:  templateCache,
 		FormDecoder:    formDecoder,
 		SessionManager: sessionManager,
+		Debug_mode:     debug,
 	}
 
 	srv := &http.Server{

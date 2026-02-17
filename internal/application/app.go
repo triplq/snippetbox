@@ -18,6 +18,7 @@ type Application struct {
 	TemplateCache  map[string]*template.Template
 	FormDecoder    *form.Decoder
 	SessionManager *scs.SessionManager
+	Debug_mode     *bool
 }
 
 func (app *Application) Render(w http.ResponseWriter, status int, page string, data *templates.TemplateData) error {
