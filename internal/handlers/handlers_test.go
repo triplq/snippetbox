@@ -23,7 +23,6 @@ func TestPing(t *testing.T) {
 }
 
 func TestSnippetView(t *testing.T) {
-
 	app := testutils.NewTestApp(t)
 
 	ts := testutils.NewTestServer(t, server.Routes(app))
@@ -90,7 +89,7 @@ func TestUserSignUp(t *testing.T) {
 		validName     = "Bob"
 		validPassword = "validPa$$word"
 		validEmail    = "bob@example.com"
-		formTag       = "<form action='/user/signup' method='POST' novalidate>"
+		formTag       = `<form action="/user/signup" method="POST" novalidate>`
 	)
 
 	tests := []struct {
@@ -182,7 +181,6 @@ func TestUserSignUp(t *testing.T) {
 			form.Add("password", tt.userPassword)
 			form.Add("csrf_token", tt.csrfToken)
 			code, _, body := ts.PostForm(t, "/user/signup", form)
-			t.Log("HEHEHE BABABA ", string(body))
 
 			assert.Equal(t, code, tt.wantCode)
 

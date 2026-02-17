@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 	"github.com/triplq/snippetbox/internal/templates"
 )
 
-var csrfTokenRX = regexp.MustCompile(`<input[^>]+name="csrf_token"[^>]+value="([^"]+)"`)
+var csrfTokenRX = regexp.MustCompile(`name=["']csrf_token["'][^>]*value=["']([^"']+)["']`)
 
 func ExtractCSRFToken(t *testing.T, body string) string {
 	matches := csrfTokenRX.FindStringSubmatch(body)
@@ -31,16 +32,28 @@ func ExtractCSRFToken(t *testing.T, body string) string {
 }
 
 func (ts *TestServer) PostForm(t *testing.T, urlPath string, form url.Values) (int, http.Header, string) {
-	rs, err := ts.Client().PostForm(ts.URL+urlPath, form)
+	req, err := http.NewRequest(
+		http.MethodPost,
+		ts.URL+urlPath,
+		strings.NewReader(string(form.Encode())),
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	req.Header.Set("Content-type", "application/x-www-form-urlencoded")
+	req.Header.Set("Referer", ts.URL)
+
+	rs, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer rs.Body.Close()
 	body, err := io.ReadAll(rs.Body)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	bytes.TrimSpace(body)
 
 	return rs.StatusCode, rs.Header, string(body)
@@ -78,6 +91,7 @@ func NewTestServer(t *testing.T, h http.Handler) *TestServer {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	ts.Client().Jar = jar
 
 	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
