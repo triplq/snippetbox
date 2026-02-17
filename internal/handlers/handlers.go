@@ -72,6 +72,12 @@ func About(app *application.Application) http.HandlerFunc {
 	}
 }
 
+// func Account(app *application.Application) http.HandlerFunc{
+// 	return func(w http.ResponseWriter, r *http.Request){
+// 		data := templates.NewTemplateData(app, r)
+// 	}
+// }
+
 func ShowSnippet(app *application.Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(r.PathValue("id"))

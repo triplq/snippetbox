@@ -51,6 +51,17 @@ func (m *UserModel) Insert(name, email, password string) error {
 	return nil
 }
 
+func (m *UserModel) Get(id int) (user User, err error) {
+	stmt := `SELECT name, email, created FROM users WHERE id = ?`
+
+	err = m.DB.QueryRow(stmt, id).Scan(&user.Name, &user.Email, &user.Created)
+	if err != nil {
+		return User{}, err
+	}
+
+	return user, nil
+}
+
 func (m *UserModel) Authenticate(email, password string) (int, error) {
 	var id int
 	var hash []byte

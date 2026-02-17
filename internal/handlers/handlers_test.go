@@ -88,6 +88,23 @@ func TestSnippetCreate(t *testing.T) {
 		assert.Equal(t, code, http.StatusSeeOther)
 		assert.Equal(t, headers.Get("Location"), "/user/login")
 	})
+
+	t.Run("Authenticated", func(t *testing.T) {
+		_, _, body := ts.Get(t, "/user/login")
+		validCsrf_token := testutils.ExtractCSRFToken(t, body)
+
+		form := url.Values{}
+		form.Add("email", "alice@example.com")
+		form.Add("password", "pa$$word")
+		form.Add("csrf_token", validCsrf_token)
+		ts.PostForm(t, "/user/login", form)
+
+		code, _, body := ts.Get(t, "/snippets/create")
+
+		assert.Equal(t, code, http.StatusOK)
+
+		assert.StringContains(t, body, `<form action="/snippets/create" method="POST">`)
+	})
 }
 
 func TestUserSignUp(t *testing.T) {
