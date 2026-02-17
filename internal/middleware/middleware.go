@@ -59,7 +59,7 @@ func AuthIsRequired(app *application.Application) func(http.Handler) http.Handle
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !app.IsAuthenticated(r) {
-				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 				return
 			}
 
